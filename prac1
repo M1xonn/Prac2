@@ -1,0 +1,552 @@
+#include <iostream>
+#include <string>
+#include <ctime>
+#include <windows.h>
+#include <fstream>
+using namespace std;
+
+struct Profile {
+	string Surname;
+	string Name;
+	string Patronymic;
+	char Sex;
+	int Group;
+	int Id;
+	int Evaluations[8];
+};
+
+struct Profile2 {
+	struct Profile profile;
+	float AverageValue;
+};
+
+void clear()
+{
+	ofstream file(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	file << "";
+	file.close();
+}
+
+void CreatingRecord() {
+	setlocale(0, "");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
+	Profile Student;
+	cout << "Фамилия: ";
+	cin >> Student.Surname;
+	cout << "Имя: ";
+	cin >> Student.Name;
+	cout << "Отчество: ";
+	cin >> Student.Patronymic;
+	cout << "Группа: ";
+	cin >> Student.Group;
+	cout << "Номер студента в группе: ";
+	cin >> Student.Id;
+	cout << "Пол (Ж/М): ";
+	cin >> Student.Sex;
+	cout << "Оценки за сессию: ";
+	for (int i = 0; i < 8; i++)
+		cin >> Student.Evaluations[i];
+	int cnt = 0;
+	for (int i = 0; i < 8; i++) {
+		if (Student.Evaluations[i] == 2)
+			cnt++;
+	}
+	if (cnt == 0) {
+		ofstream Database;
+		Database.open(R"(C:\Программирование\2 сем\1 prac\Students.txt)", ios::app);
+		if (!Database.is_open())
+			cout << '\n' << "Ошибка сохранения!";
+		else {
+			Database << Student.Surname << '\n';
+			Database << Student.Name << '\n';
+			Database << Student.Patronymic << '\n';
+			Database << Student.Group << '\n';
+			Database << Student.Id << '\n';
+			Database << Student.Sex << '\n';
+			for (int i = 0; i < 8; i++)
+				Database << Student.Evaluations[i] << ' ';
+			Database.close();
+			cout << '\n' << "Профиль сохранён в базу данных" << '\n';
+		}
+	}
+	else
+		cout << '\n' << "У этого студента есть 2, профиль не может быть сохранён в базу данных";
+}
+
+int CountStudents() {
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (Database.is_open()) {
+		int cnt = 0;
+		string Data;
+		while (!Database.eof()) {
+			getline(Database, Data);
+			cnt++;
+		}
+		Database.close();
+		int n;
+		n = cnt / 7;
+		return n;
+	}
+	else return 0;
+}
+
+void PrintData() {
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не удалось открыть" << '\n';
+	else {
+		int cnt;
+		cnt = CountStudents();
+		if (cnt == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			string Data;
+			while (!Database.eof()) {
+				getline(Database, Data);
+				cout << Data << '\n';
+			}
+		}
+		Database.close();
+	}
+}
+
+void ChangeRecord() {
+	string FSurname;
+	string FName;
+	string FPatronymic;
+	PrintData();
+	cout << "Введите фамилию студента: ";
+	cin >> FSurname;
+	cout << "Введите Имя студента: ";
+	cin >> FName;
+	cout << "Введите отчество студента: ";
+	cin >> FPatronymic;
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не открыт" << '\n';
+	else {
+		int Size;
+		Size = CountStudents();
+		if (Size == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			Profile* Student = new Profile[Size];
+			for (int i = 0; i < Size; i++) {
+				Database >> Student[i].Surname;
+				Database >> Student[i].Name;
+				Database >> Student[i].Patronymic;
+				Database >> Student[i].Group;
+				Database >> Student[i].Id;
+				Database >> Student[i].Sex;
+				for (int j = 0; j < 8; j++)
+					Database >> Student[i].Evaluations[j];
+			}
+			Database.close();
+			int cnt = 0;
+			for (int i = 0; i < Size; i++) {
+				if ((Student[i].Surname == FSurname) and (Student[i].Name == FName) and (Student[i].Patronymic == FPatronymic)) {
+					cnt++;
+					cout << '\n' << Student[i].Surname << '\n';
+					cout << Student[i].Name << '\n';
+					cout << Student[i].Patronymic << '\n';
+					cout << Student[i].Group << '\n';
+					cout << Student[i].Id << '\n';
+					cout << Student[i].Sex << '\n';
+					for (int j = 0; j < 8; j++)
+						cout << Student[i].Evaluations[j] << ' ';
+					cout << '\n' << "Введите новую фамилию студента: ";
+					cin >> Student[i].Surname;
+					cout << "Введите новое имя студента: ";
+					cin >> Student[i].Name;
+					cout << "Введите новое отчество студента: ";
+					cin >> Student[i].Patronymic;
+					cout << "Введите новую группу студента: ";
+					cin >> Student[i].Group;
+					cout << "Введите новый номер студента в группе: ";
+					cin >> Student[i].Id;
+					cout << "Введите новый пол студента: ";
+					cin >> Student[i].Sex;
+					cout << "Введите новые оценки студента: ";
+					for (int j = 0; j < 8; j++) {
+						cin >> Student[i].Evaluations[j];
+						if (Student[i].Evaluations[j] < 3) {
+							cout << "У студента не может быть 2" << '\n';
+							cout << "Введите заново оценку: ";
+							cin >> Student[i].Evaluations[j];
+						}
+					}
+
+				}
+			}
+			if (cnt == 0)
+				cout << '\n' << "Данный студент не найден" << '\n';
+			else {
+				clear();
+				ofstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)", ios::app);
+				for (int i = 0; i < Size; i++) {
+					Database << Student[i].Surname << '\n';
+					Database << Student[i].Name << '\n';
+					Database << Student[i].Patronymic << '\n';
+					Database << Student[i].Group << '\n';
+					Database << Student[i].Id << '\n';
+					Database << Student[i].Sex << '\n';
+					for (int j = 0; j < 8; j++)
+						Database << Student[i].Evaluations[j] << ' ';
+					Database << '\n';
+				}
+				Database.close();
+			}
+			delete[] Student;
+		}
+	}
+}
+
+void PrintGroup() {
+	int group;
+	cout << "Введите номер группы: ";
+	cin >> group;
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не открыт" << '\n';
+	else {
+		int Size;
+		Size = CountStudents();
+		if (Size == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			Profile* Student = new Profile[Size];
+			for (int i = 0; i < Size; i++) {
+				Database >> Student[i].Surname;
+				Database >> Student[i].Name;
+				Database >> Student[i].Patronymic;
+				Database >> Student[i].Group;
+				Database >> Student[i].Id;
+				Database >> Student[i].Sex;
+				for (int j = 0; j < 8; j++)
+					Database >> Student[i].Evaluations[j];
+			}
+			Database.close();
+			int cnt = 0;
+			for (int i = 0; i < Size; i++) {
+				if (Student[i].Group == group) {
+					cout << Student[i].Id << ". " << Student[i].Surname << ' ' << Student[i].Name << ' ' << Student[i].Patronymic << '\n';
+					cnt++;
+				}
+			}
+			if (cnt == 0)
+				cout << "Данные об этой группе не найдены" << '\n';
+			delete[] Student;
+		}
+	}
+}
+
+void PrintKolSex() {
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не открыт" << '\n';
+	else {
+		int Size;
+		Size = CountStudents();
+		if (Size == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			Profile* Student = new Profile[Size];
+			for (int i = 0; i < Size; i++) {
+				Database >> Student[i].Surname;
+				Database >> Student[i].Name;
+				Database >> Student[i].Patronymic;
+				Database >> Student[i].Group;
+				Database >> Student[i].Id;
+				Database >> Student[i].Sex;
+				for (int j = 0; j < 8; j++)
+					Database >> Student[i].Evaluations[j];
+			}
+			Database.close();
+			int cntmen = 0;
+			int cntwomen = 0;
+			for (int i = 0; i < Size; i++) {
+				if (Student[i].Sex == 'М') {
+					cntmen++;
+				}
+				else
+					cntwomen++;
+			}
+			cout << "Количество мужчин: " << cntmen << '\n';
+			cout << "Количество Женщин: " << cntwomen << '\n';
+			delete[] Student;
+		}
+	}
+}
+
+void PrintStudentEvoluations() {
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не открыт" << '\n';
+	else {
+		int Size;
+		Size = CountStudents();
+		if (Size == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			Profile* Student = new Profile[Size];
+			for (int i = 0; i < Size; i++) {
+				Database >> Student[i].Surname;
+				Database >> Student[i].Name;
+				Database >> Student[i].Patronymic;
+				Database >> Student[i].Group;
+				Database >> Student[i].Id;
+				Database >> Student[i].Sex;
+				for (int j = 0; j < 8; j++)
+					Database >> Student[i].Evaluations[j];
+			}
+			Database.close();
+			int Variant;
+			do {
+				system("cls");
+				cout << "Кого вывести?" << '\n';
+				cout << "1. Студентов без стипендии" << '\n';
+				cout << "2. Студентов с 4 и 5" << '\n';
+				cout << "3. Студентов отличников" << '\n';
+				cout << "4. Выйти в меню" << '\n';
+				cin >> Variant;
+				switch (Variant) {
+				case 1:
+					for (int i = 0; i < Size; i++) {
+						int cnt3 = 0;
+						for (int j = 0; j < 8; j++)
+							if (Student[i].Evaluations[j] == 3) cnt3++;
+						if (cnt3 != 0) {
+							cout << '\n' << Student[i].Surname << '\n';
+							cout << Student[i].Name << '\n';
+							cout << Student[i].Patronymic << '\n';
+							cout << Student[i].Group << '\n';
+							cout << Student[i].Id << '\n';
+							cout << Student[i].Sex << '\n';
+							for (int j = 0; j < 8; j++)
+								cout << Student[i].Evaluations[j] << ' ';
+						}
+					}
+					break;
+				case 2:
+					for (int i = 0; i < Size; i++) {
+						int cnt3 = 0, cnt5 = 0;
+						for (int j = 0; j < 8; j++) {
+							if (Student[i].Evaluations[j] == 3) 
+								cnt3++;
+							if (Student[i].Evaluations[j] == 5) 
+								cnt5++;
+						}
+						if ((cnt3 == 0) and (cnt5!=8)) {
+							cout << '\n' << Student[i].Surname << '\n';
+							cout << Student[i].Name << '\n';
+							cout << Student[i].Patronymic << '\n';
+							cout << Student[i].Group << '\n';
+							cout << Student[i].Id << '\n';
+							cout << Student[i].Sex << '\n';
+							for (int j = 0; j < 8; j++)
+								cout << Student[i].Evaluations[j] << ' ';
+						}
+					}
+					break;
+				case 3:
+					for (int i = 0; i < Size; i++) {
+						int cnt5 = 0;
+						for (int j = 0; j < 8; j++) {
+							if (Student[i].Evaluations[j] == 5) cnt5++;
+						}
+						if (cnt5 == 8) {
+							cout << '\n' << Student[i].Surname << '\n';
+							cout << Student[i].Name << '\n';
+							cout << Student[i].Patronymic << '\n';
+							cout << Student[i].Group << '\n';
+							cout << Student[i].Id << '\n';
+							cout << Student[i].Sex << '\n';
+							for (int j = 0; j < 8; j++)
+								cout << Student[i].Evaluations[j] << ' ';
+						}
+					}
+					break;
+				}
+				if (Variant != 4)
+					system("pause");
+			} while (Variant != 4);
+		}
+	}
+}
+
+void TopStudents() {
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не открыт" << '\n';
+	else {
+		int Size;
+		Size = CountStudents();
+		if (Size == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			Profile* Student = new Profile[Size];
+			Profile2* Students = new Profile2[Size];
+			for (int i = 0; i < Size; i++) {
+				Database >> Student[i].Surname;
+				Students[i].profile.Surname = Student[i].Surname;
+				Database >> Student[i].Name;
+				Students[i].profile.Name = Student[i].Name;
+				Database >> Student[i].Patronymic;
+				Students[i].profile.Patronymic = Student[i].Patronymic;
+				Database >> Student[i].Group;
+				Students[i].profile.Group = Student[i].Group;
+				Database >> Student[i].Id;
+				Students[i].profile.Id = Student[i].Id;
+				Database >> Student[i].Sex;
+				Students[i].profile.Sex = Student[i].Sex;
+				float Average = 0;
+				for (int j = 0; j < 8; j++) {
+					Database >> Student[i].Evaluations[j];
+					Students[i].profile.Evaluations[j] = Student[i].Evaluations[j];
+					Average += Student[i].Evaluations[j];
+				}
+				Average /= 8;
+				Students[i].AverageValue = Average;
+			}
+			Database.close();
+			Profile2** q = new Profile2 * [Size];
+			for (int i = 0; i < Size; i++)
+				q[i] = &Students[i];
+			for (int i = 0; i < Size; i++)
+				for (int j = 0; j < Size - i - 1; j++)
+					if ((q[j]->AverageValue) < (q[j + 1]->AverageValue)) {
+						Profile2* temp = q[j];
+						q[j] = q[j + 1];
+						q[j+1]=temp;
+					}
+			int NumberStud;
+			cout << "Введите топ скольки студентов вывести: ";
+			cin >> NumberStud;
+			if (NumberStud > Size) {
+				cout << "Слишком большой топ, введите число меньше";
+			}
+			else {
+				for (int i = 0; i < NumberStud; i++) {
+					cout << q[i]->profile.Surname << '\n';
+					cout << q[i]->profile.Name << '\n';
+					cout << q[i]->profile.Patronymic << '\n';
+					cout << q[i]->profile.Group << '\n';
+					cout << q[i]->profile.Id << '\n';
+					cout << q[i]->profile.Sex << '\n';
+					for (int j = 0; j < 8; j++)
+						cout << q[i]->profile.Evaluations[j] << ' ';
+					cout << '\n';
+				}
+			}
+			delete[] Student;
+			delete[] Students;
+			delete[] q;
+		}
+	}
+
+}
+
+void PrintStudentNumber() {
+	int Number;
+	cout << "Введите номер студента в группе: ";
+	cin >> Number;
+	ifstream Database(R"(C:\Программирование\2 сем\1 prac\Students.txt)");
+	if (!Database.is_open())
+		cout << "Файл не открыт" << '\n';
+	else {
+		int Size;
+		Size = CountStudents();
+		if (Size == 0)
+			cout << "Файл пустой" << '\n';
+		else {
+			Profile* Student = new Profile[Size];
+			for (int i = 0; i < Size; i++) {
+				Database >> Student[i].Surname;
+				Database >> Student[i].Name;
+				Database >> Student[i].Patronymic;
+				Database >> Student[i].Group;
+				Database >> Student[i].Id;
+				Database >> Student[i].Sex;
+				for (int j = 0; j < 8; j++)
+					Database >> Student[i].Evaluations[j];
+			}
+			Database.close();
+			int cnt = 0;
+			for (int i = 0; i < Size; i++) {
+				if (Student[i].Id == Number) {
+					cout << '\n' << Student[i].Surname << '\n';
+					cout << Student[i].Name << '\n';
+					cout << Student[i].Patronymic << '\n';
+					cout << Student[i].Group << '\n';
+					cout << Student[i].Id << '\n';
+					cout << Student[i].Sex << '\n';
+					for (int j = 0; j < 8; j++)
+						cout << Student[i].Evaluations[j] << ' ';
+					cnt++;
+				}
+			}
+			if (cnt == 0)
+				cout << "Ни в какой группе нет студента с таким номером" << '\n';
+			delete[] Student;
+		}
+	}
+}
+
+
+void PrintMenu() {
+	system("cls");
+	cout << "Что выхотите сделать?" << '\n';
+	cout << "1. Создать новую запись о студенте" << '\n';
+	cout << "2. Внести изменения в запись студента" << '\n';
+	cout << "3. Вывод всех студентов" << '\n';
+	cout << "4. Вывод всех студентов группы" << '\n';
+	cout << "5. Вывод топа студентов" << '\n';
+	cout << "6. Вывод количества студентов мужского и женского пола" << '\n';
+	cout << "7. Вывод данных о студентах по оценкам" << '\n';
+	cout << "8. Вывести данные о студентах с номером в группе" << '\n';
+	cout << "9. Выйти из программы" << '\n';
+}
+
+void Menu() {
+	int Variant;
+	do {
+		PrintMenu();
+		cin >> Variant;
+		switch (Variant) {
+		case 1:
+			CreatingRecord();
+			break;
+		case 2:
+			ChangeRecord();
+			break;
+		case 3:
+			PrintData();
+			break;
+		case 4:
+			PrintGroup();
+			break;
+		case 5:
+			TopStudents();
+			break;
+		case 6:
+			PrintKolSex();
+			break;
+		case 7:
+			PrintStudentEvoluations();
+			break;
+		case 8:
+			PrintStudentNumber();
+			break;
+		}
+		if (Variant != 9)
+			system("pause");
+	} while (Variant != 9);
+}
+
+int main() {
+	setlocale(0, "");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
+	Menu();
+}
