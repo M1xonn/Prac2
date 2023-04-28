@@ -1,0 +1,238 @@
+#include <iostream>
+#include <ctime>
+#include <chrono>
+#include <windows.h>
+using namespace std;
+
+struct Node {
+    int data;
+    Node* prev;
+    Node* next;
+    Node(int data = 0, Node* prev = NULL, Node* next = NULL) {
+        this->data = data;
+        this->prev = prev;
+        this->next = next;
+    }
+};
+
+struct DoublyLinkedList {
+    Node* head;
+    Node* tail;
+    int size;
+    DoublyLinkedList() {
+        head = NULL;
+        tail = NULL;
+        size = 0;
+    }
+    void append(int data) {
+        Node* new_node = new Node(data, tail, NULL);
+        if (tail != NULL) {
+            tail->next = new_node;
+        }
+        tail = new_node;
+        if (head == NULL) {
+            head = tail;
+        }
+        size++;
+    }
+    void display() {
+        Node* curr = head;
+        cout << '\n';
+        while (curr != NULL) {
+            cout << curr->data << " ";
+            curr = curr->next;
+        }
+        cout << '\n';
+    }
+    void get(int index) {
+        if (index < 0 or index >= size) {
+            cout << "Ошибка, индекс выходит за пределы" << '\n';
+            return ;
+        }
+        Node* curr = head;
+        for (int i = 0; i < index; i++) {
+            curr = curr->next;
+        }
+        cout << '\n' << curr->data << '\n';
+    }
+    void insert(int index, int data) {
+        if (index < 0 or index > size) {
+            cout << "Ошибка, индекс выходит за пределы" << '\n';
+            return;
+        }
+        if (index == size) {
+            append(data);
+            return;
+        }
+        Node* curr = head;
+        for (int i = 0; i < index; i++) {
+            curr = curr->next;
+        }
+        Node* new_node = new Node(data, curr->prev, curr);
+        if (curr->prev != NULL) {
+            curr->prev->next = new_node;
+        }
+        else {
+            head = new_node;
+        }
+        curr->prev = new_node;
+        size++;
+    }
+    void remove(int index) {
+        if (index < 0 or index >= size) {
+            cout << "Ошибка, индекс выходит за пределы" << '\n';
+            return;
+        }
+        if (size == 0) {
+            cout << "Ошибка, список пуст" << '\n';
+            return;
+        }
+        Node* curr = head;
+        for (int i = 0; i < index; i++) {
+            curr = curr->next;
+        }
+        if (curr->prev != NULL) {
+            curr->prev->next = curr->next;
+        }
+        else {
+            head = curr->next;
+        }
+        if (curr->next != NULL) {
+            curr->next->prev = curr->prev;
+        }
+        else {
+            tail = curr->prev;
+        }
+        delete curr;
+        size--;
+    }
+    void swap(int index1, int index2) {
+        if (index1 < 0 or index1 >= size or index2 < 0 or index2 >= size) {
+            cout << "Ошибка, индекс выходит за пределы" << '\n';
+            return;
+        }
+        Node* curr1 = head;
+        for (int i = 0; i < index1; i++) {
+            curr1 = curr1->next;
+        }
+        Node* curr2 = head;
+        for (int i = 0; i < index2; i++) {
+            curr2 = curr2->next;
+        }
+        int temp = curr1->data;
+        curr1->data = curr2->data;
+        curr2->data = temp;
+    }
+};
+
+void PrintMenu() {
+    system("cls");
+    cout << "Что выхотите сделать?" << '\n';
+    cout << "1. Вставить новый элемент списка" << '\n';
+    cout << "2. Удалить элемент списка" << '\n';
+    cout << "3. Получить значение элемента списка" << '\n';
+    cout << "4. Обмен местами эементов списка" << '\n';
+    cout << "5. Выйти из программы" << '\n';
+}
+
+void Menu() {
+    int Variant;
+    DoublyLinkedList dll;
+    srand(time(0));
+    int N;
+    int Var;
+    cout << "1. Самостоятельно заполнить список" << '\n';
+    cout << "2. Автоматически заполнить список" << '\n';
+    cin >> Var;
+    auto StartTime = chrono::high_resolution_clock::now();
+    auto EndTime = chrono::high_resolution_clock::now();
+    switch (Var) {
+    case 1:
+        cout << "Вводите элементы списка, когда захотите закончить введите -1 " << '\n';
+        cin >> N;
+        StartTime = chrono::high_resolution_clock::now();
+        while (N != -1) {
+            dll.append(N);
+            cin >> N;
+        }
+        EndTime = chrono::high_resolution_clock::now();
+        break;
+    case 2:
+
+        cout << "Введите размер списка: ";
+        cin >> N;
+        cout << '\n';
+        StartTime = chrono::high_resolution_clock::now();
+        for (int i = 0; i < N; i++) {
+            int data = rand() % 100;
+            dll.append(data);
+        }
+        EndTime = chrono::high_resolution_clock::now();
+        break;
+    }
+
+    
+
+    cout << "Список: ";
+    dll.display();
+    cout << '\n' << "Время, потраченное на создание списка = " << chrono::duration_cast<chrono::nanoseconds>(EndTime - StartTime).count() << "нс." << '\n';
+    system("pause");
+    do {
+        PrintMenu();
+        cin >> Variant;
+        switch (Variant) {
+        case 1:
+            int index;
+            int data;
+            dll.display();
+            cout << '\n' << "Введите значение, которое хотите добавить в список: ";
+            cin >> data;
+            cout << '\n' << "Введите индекс куда вставить значение: ";
+            cin >> index;
+            StartTime = chrono::high_resolution_clock::now();
+            dll.insert(index, data);
+            EndTime = chrono::high_resolution_clock::now();
+            dll.display();
+            cout << '\n' << "Время, потраченное на добавление элемента в список = " << chrono::duration_cast<chrono::nanoseconds>(EndTime - StartTime).count() << "нс." << '\n';
+            break;
+        case 2:
+            dll.display();
+            cout << '\n' << "Введите индекс элемента, который удалить из списка: ";
+            cin >> index;
+            StartTime = chrono::high_resolution_clock::now();
+            dll.remove(index);
+            EndTime = chrono::high_resolution_clock::now();
+            dll.display();
+            cout << '\n' << "Время, потраченное на удаление элемента из списка = " << chrono::duration_cast<chrono::nanoseconds>(EndTime - StartTime).count() << "нс." << '\n';
+            break;
+        case 3:
+            cout << '\n' << "Введите индекс значение которого хотите получить: ";
+            cin >> index;
+            StartTime = chrono::high_resolution_clock::now();
+            dll.get(index);
+            EndTime = chrono::high_resolution_clock::now();
+            cout << '\n' << "Время, потраченное на получение значение элемента списка = " << chrono::duration_cast<chrono::nanoseconds>(EndTime - StartTime).count() << "нс." << '\n';
+            break;
+        case 4:
+            int index1, index2;
+            dll.display();
+            cout << '\n' << "Введите индексы элементов, которые хотите поменять местами: ";
+            cin >> index1 >> index2;
+            StartTime = chrono::high_resolution_clock::now();
+            dll.swap(index1, index2);
+            EndTime = chrono::high_resolution_clock::now();
+            dll.display();
+            cout << '\n' << "Время, потраченное на смену элементов местами = " << chrono::duration_cast<chrono::nanoseconds>(EndTime - StartTime).count() << "нс." << '\n';
+            break;
+        }
+        if (Variant != 5)
+            system("pause");
+    } while (Variant != 5);
+}
+
+int main() {
+    setlocale(0, "");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    Menu();
+}
