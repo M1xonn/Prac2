@@ -1,0 +1,400 @@
+#include <iostream>
+#include <string>
+#include <windows.h>
+
+using namespace std;
+
+struct Node1 {
+    int value;
+    Node1* next;
+};
+
+struct Stack1{
+    Node1* head;
+    int size=0;
+    Stack1(){
+        head = NULL;
+    }
+
+    bool isEmpty(){
+        return head == NULL;
+    }
+
+    void push(int value){
+        Node1* newNode = new Node1;
+        newNode->value = value;
+        newNode->next = head;
+        size++;
+        head = newNode;
+    }
+
+    int pop(){
+        if (isEmpty()){
+            cout << "Стек пуст" << '\n';
+            return -1;
+        }
+        Node1* temp = head;
+        int popValue = temp->value;
+        head = head->next;
+        size--;
+        delete temp;
+        return popValue;
+    }
+    int top() {
+        if (head != NULL)
+            return head->value;
+    }
+    
+
+    void display()
+    {
+        Node1* temp = head;
+        while (temp != NULL)
+        {
+            cout << temp->value << " ";
+            temp = temp->next;
+        }
+        cout << endl;
+    }
+};
+
+struct Node2 {
+    char value;
+    Node2* next;
+};
+
+struct Stack2 {
+    Node2* head;
+    int size=0;
+    Stack2() {
+        head = NULL;
+    }
+
+    bool isEmpty() {
+        return head == NULL;
+    }
+
+    void push(char value) {
+        Node2* newNode = new Node2;
+        newNode->value = value;
+        newNode->next = head;
+        size++;
+        head = newNode;
+    }
+
+    char pop() {
+        if (isEmpty()) {
+            cout << "Стек пуст" << '\n';
+            return '0';
+        }
+        Node2* temp = head;
+        char popValue = temp->value;
+        head = head->next;
+        size--;
+        delete temp;
+        return popValue;
+    }
+    char top() {
+        if (head != NULL)
+            return head->value;
+    }
+
+
+    void display()
+    {
+        while (head != NULL)
+        {
+            cout << head->value << " ";
+            head = head->next;
+        }
+        cout << '\n';
+    }
+};
+
+int IsVariable(char i) {
+    switch (i) {
+    case '+': case '-': case '*': case '/': return 0;
+    case ' ': return 1;
+    default: return 2;
+    }
+}
+void Add(Stack1* NewStc) {
+    int FirstVar = NewStc->pop();
+    int SecVar = NewStc->pop();
+    int result = FirstVar + SecVar;
+    cout << FirstVar << " + " << SecVar << '\n';
+    NewStc->push(result);
+}
+void Deduct(Stack1* NewStc) {
+    int FirstVar = NewStc->pop();
+    int SecVar = NewStc->pop();
+    int result = SecVar - FirstVar;
+    cout << SecVar << " - " <<FirstVar << '\n';
+    NewStc->push(result);
+}
+void Multiply(Stack1* NewStc) {
+    int FirstVar = NewStc->pop();
+    int SecVar = NewStc->pop();
+    int result = FirstVar * SecVar;
+    cout << FirstVar << " * " << SecVar << '\n';
+    NewStc->push(result);
+}
+void Divide(Stack1* NewStc) {
+    int FirstVar = NewStc->pop();
+    int SecVar = NewStc->pop();
+    int result = SecVar / FirstVar;
+    cout << SecVar << " / " << FirstVar << '\n';
+    NewStc->push(result);
+}
+
+int Priority(char i) {
+    switch (i) {
+    case '(': return 1;
+    case '+': case '-': return 2;
+    case '*': case '/': return 3;
+    default: return 0;
+    }
+}
+
+bool IsStrDigit(string DigitBuffer) {
+    for (int i = 0; i < DigitBuffer.size(); i++) {
+        if (!isdigit(DigitBuffer[i]))
+            return false;
+    }
+    return true;
+}
+
+int CalculatePostfix(string Postfix) {
+    if (Postfix.find(")") != -1 || Postfix.find("(") != -1) {
+        cout << "Неверное выражение, должны отсутсвовать скобки" << '\n';
+        return 0;
+    }
+    Stack1 NewStc;
+    Postfix += " ";
+    string Buffer = "";
+    for (int i = 0; i < Postfix.size(); i++) {
+        switch (IsVariable(Postfix[i])) {
+        case 1: 
+            if (Buffer.size() != 0) {
+                int a = stoi(Buffer);
+                NewStc.push(a);
+                Buffer = "";
+            }
+            break;
+        case 2:
+            Buffer += Postfix[i];
+            break;
+        case 0:
+            if (NewStc.size < 2) {
+                cout << "Выражение некорректно" << '\n';
+                return 0;
+            }
+            switch (Postfix[i]) {
+            case '+':
+                if (!NewStc.isEmpty()) {
+                    Add(&NewStc);
+                    break;
+                }
+            case '-':
+                if (!NewStc.isEmpty()) {
+                    Deduct(&NewStc);
+                    break;
+                }
+            case '*':
+                if (!NewStc.isEmpty()) {
+                    Multiply (&NewStc);
+                    break;
+                }
+            case '/':
+                if (!NewStc.isEmpty()) {
+                    Divide(&NewStc);
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    if (NewStc.size > 1) {
+        cout << "Неправильная расстановка операторов" << '\n';
+        return 0;
+    }
+    cout << "Значение корректного выражения: " << NewStc.top() << '\n';
+    return 1;
+}
+
+int CalculateInfix(string str) {
+    Stack2 stc;
+    string Postfix;
+    for (int i = 0; i < str.size(); i++) {
+        switch (Priority(str[i])) {
+        case 1:
+            Postfix += " ";
+            stc.push(str[i]);
+            break;
+        case 0:
+            if (str[i] == ')') {
+                Postfix += " ";
+                while (!stc.isEmpty() && stc.top() != '(') {
+                    Postfix += " ";
+                    Postfix += stc.pop();
+                    Postfix += " ";
+                }
+                if (!stc.isEmpty()) {
+                    Postfix += " ";
+                    stc.pop();
+                }
+                else {
+                    cout << "Неправильное расположение скобок" << '\n';
+                    return 0;
+                }
+            }
+            else {
+                if ((str[i] != ' ') && (!isdigit(str[i]))) {
+                    cout << "Встречена переменная: " << str[i] << " иницилизируйте её" << '\n';
+                    cout << "Значение переменной: ";
+                    string StrForInit = " ";
+                    while (!IsStrDigit(StrForInit)) {
+                        getline(cin, StrForInit);
+                        if (!IsStrDigit(StrForInit))
+                            cout << "Вы ввели не число";
+                    }
+                    Postfix += StrForInit;
+                }
+                else {
+                    Postfix += str[i];
+                }
+            }
+            break;
+        default:
+            if (!stc.isEmpty()) {
+                Postfix += " ";
+                while (!stc.isEmpty() && Priority(stc.top()) >= Priority(str[i])) {
+                    Postfix += stc.pop();
+                    Postfix += " ";
+                }
+                stc.push(str[i]);
+            }
+            else {
+                Postfix += " ";
+                stc.push(str[i]);
+            }
+            break;
+        }
+    }
+    if (!stc.isEmpty()) {
+        Postfix += " ";
+        while (!stc.isEmpty()) {
+            Postfix += stc.pop();
+            Postfix += " ";
+        }
+    }
+    while (Postfix.find("  ") != -1) {
+        Postfix.replace(Postfix.find("  "), 2, " ");
+    }
+    cout << "Преобразованное выражение в обратную польскую нотацию: " << Postfix << '\n';
+    CalculatePostfix(Postfix);
+}
+
+int CalculatePrefix(string Prefix) {
+    if (Prefix.find(")") != -1 || Prefix.find("(") != -1) {
+        cout << "Должны отсутствовать скобки" << '\n';
+        return 0;
+    }
+    Stack1 NewStc;
+    string Buffer = "";
+    for (int i = Prefix.size(); i > -1; i--) {
+        switch (IsVariable(Prefix[i])) {
+        case 1:
+            if (Buffer.size() != 0) {
+                reverse(Buffer.begin(), Buffer.end());
+                NewStc.push(stoi(Buffer));
+                Buffer = "";
+            }
+            break;
+        case 2:
+            Buffer += Prefix[i];
+            break;
+        case 0:
+            if (NewStc.size < 2) {
+                cout << "Выражение некорретно" << '\n';
+                return 0;
+            }
+            switch (Prefix[i]) {
+            case '+':
+                if (!NewStc.isEmpty()) {
+                    Add(&NewStc);
+                    break;
+                }
+            case '-':
+                if (!NewStc.isEmpty()) {
+                    Deduct(&NewStc);
+                    break;
+                }
+            case '*':
+                if (!NewStc.isEmpty()) {
+                    Multiply(&NewStc);
+                    break;
+                }
+            case '/':
+                if (!NewStc.isEmpty()) {
+                    Divide(&NewStc);
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    if (NewStc.size > 1) {
+        cout << "Выражение неккоректно" << '\n';
+        return 1;
+    }
+    cout << NewStc.top() << " Значение корректного выражение" << '\n';
+    return 1;
+}
+
+void PrintMenu() {
+    system("cls");
+    cout << "1. Преобразовать инфиксную запись и найти значение выражения" << '\n';
+    cout << "2. Найти значение выражение в обратной польской нотации" << '\n';
+    cout << "3. Найти значение выражения в прямой польской нотации" << '\n';
+    cout << "4. Выход" << '\n';
+}
+
+void Menu() {
+    int Variant;
+    do {
+        PrintMenu();
+        cin >> Variant;
+        string Str;
+        switch (Variant) {
+        case 1:
+            cin.ignore();
+            cout << "Введите выражение" << '\n';
+            getline(cin, Str);
+            CalculateInfix(Str);
+            break;
+        case 2:
+            cin.ignore();
+            cout << "Введите выражение, каждый операнд и оператор должны быть разделены пробелами" << '\n';
+            getline(cin, Str);
+            CalculatePostfix(Str);
+            break;
+        case 3:
+            cin.ignore();
+            cout << "Введите выражение, каждый операнд и оператор должны быть разделены пробелами" << '\n';
+            getline(cin, Str);
+            CalculatePrefix(Str);
+            break;
+        }
+        if (Variant != 4)
+            system("pause");
+    } while (Variant != 4);
+}
+
+
+int main() {
+    setlocale(0, "Rus");
+    Menu();
+}
+
+
